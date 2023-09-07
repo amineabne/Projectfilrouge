@@ -1,16 +1,13 @@
 package com.example.projectfilrouge.repository;
 
+import com.example.projectfilrouge.entity.Ticket;
 import com.example.projectfilrouge.entity.User;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
 
+public interface TicketRepository extends   JpaRepository<Ticket, Long>{
 
-
-@Repository
-public interface UserRepository extends JpaRepository<User,Long> {
     @Override
-    Page<User> findAll(Pageable pageable);
-
+    Page<Ticket> findAll(Pageable pageable);
 }
