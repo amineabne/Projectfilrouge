@@ -1,16 +1,10 @@
 package com.example.projectfilrouge.sercices;
 
 import com.example.projectfilrouge.entity.User;
-import com.example.projectfilrouge.repository.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 
-@Service
-public class UserService {
-    @Autowired
-    private UserRepository userRepository;
+import java.util.List;
 
-
-
+public interface UserService {
+    public User saveUser(User user ) ;
+    public List<User> getAllUsers();
 }
-

@@ -1,21 +1,25 @@
 package com.example.projectfilrouge.controller;
 
 import com.example.projectfilrouge.entity.User;
-import com.example.projectfilrouge.repository.UserRepository;
 import com.example.projectfilrouge.sercices.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+@CrossOrigin("*")
 @RestController
-@RequestMapping("/api/user")
+@RequestMapping("/user")
 public class UserController {
-    @Autowired
-    private UserService userService;
 
+  @Autowired
+    private UserService userService ;
+@PostMapping("/add")
+    public String add(@RequestBody User user) {
+    userService.saveUser(user);
+    return  "  New User is added " ;
+}
 
+    public List<User> getAllUsers() {
+    return  userService.getAllUsers();
+}
 }

@@ -1,16 +1,23 @@
 package com.example.projectfilrouge.entity;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
+import java.util.Collection;
 import java.util.List;
 
 @Entity
 @Data
 @NoArgsConstructor
 
-public class User {
+@AllArgsConstructor
+@ToString
+
+
+public class User   {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -27,5 +34,11 @@ public class User {
     private List<Ticket> tickets;
 
 
-}
+
+
+
+    }
+
+
+
 
