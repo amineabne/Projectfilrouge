@@ -1,19 +1,21 @@
 package com.example.projectfilrouge.entity;
 
-import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
+import javax.persistence.*;
 import java.util.Date;
 
+@Getter
+@Setter
+@EqualsAndHashCode
+@NoArgsConstructor
 @Entity
-@Data
-
-
 public class Ticket {
-    @Id
 
+    @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
     private String eventName;
@@ -25,8 +27,7 @@ public class Ticket {
 
     @ManyToOne
     @JoinColumn(name = "owner_id")
-    private User owner;
-
+    private UserEntity owner;
 
 
 }
