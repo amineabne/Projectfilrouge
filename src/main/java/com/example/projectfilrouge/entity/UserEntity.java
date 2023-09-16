@@ -1,5 +1,7 @@
 package com.example.projectfilrouge.entity;
 
+
+import jakarta.persistence.*;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -8,7 +10,6 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import javax.persistence.*;
 import java.util.Collection;
 import java.util.Collections;
 
@@ -25,7 +26,7 @@ public class UserEntity implements UserDetails {
             allocationSize =  1
     )
     @GeneratedValue(
-            strategy =  GenerationType.SEQUENCE,
+            strategy = GenerationType.SEQUENCE,
             generator = "student_sequence"
     )
     private Long id;

@@ -1,23 +1,31 @@
 package com.example.projectfilrouge.service.user;
 
 
-import com.example.projectfilrouge.entity.UserRole;
-import com.example.projectfilrouge.repository.UserRepository;
-import com.example.projectfilrouge.dto.RegistrationDto;
+import com.example.projectfilrouge.dto.UserDto;
 import com.example.projectfilrouge.entity.ConfirmationToken;
 import com.example.projectfilrouge.entity.UserEntity;
-
-import java.time.LocalDateTime;
-import java.util.UUID;
-
+import com.example.projectfilrouge.entity.UserRole;
+import com.example.projectfilrouge.exception.NotFoundException;
+import com.example.projectfilrouge.repository.UserRepository;
 import com.example.projectfilrouge.service.email.EmailSender;
+import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import javax.transaction.Transactional;
+import org.springframework.web.server.ResponseStatusException;
+
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 @Service
 @AllArgsConstructor
@@ -25,7 +33,7 @@ public class UserService implements UserDetailsService {
 
     private static final String USER_NOT_FOUND_MSG = "user with email %s not found";
     private final UserRepository userRepository;
-    private final BCryptPasswordEncoder bCryptPasswordEncoder;
+    private final PasswordEncoder passwordEncoder;
     private final EmailSender emailSender;
     private final ConfirmationTokenService confirmationTokenService;
 
@@ -37,12 +45,12 @@ public class UserService implements UserDetailsService {
                         new UsernameNotFoundException(String.format(USER_NOT_FOUND_MSG, email)));
     }
 
-    public void signUpUser(RegistrationDto registrationDto) {
+    public void signUpUser(UserDto userDto) {
         UserEntity userEntity = new UserEntity(
-                registrationDto.getFirstName(),
-                registrationDto.getLastName(),
-                registrationDto.getEmail(),
-                registrationDto.getPassword(),
+                userDto.getFirstName(),
+                userDto.getLastName(),
+                userDto.getEmail(),
+                userDto.getPassword(),
                 UserRole.USER
 
         );
@@ -52,7 +60,7 @@ public class UserService implements UserDetailsService {
         if (userExists) {
             throw new IllegalStateException("Email already taken");
         }
-        String encodePassword = bCryptPasswordEncoder.encode(userEntity.getPassword());
+        String encodePassword = passwordEncoder.encode(userEntity.getPassword());
 
         userEntity.setPassword(encodePassword);
 
@@ -70,10 +78,10 @@ public class UserService implements UserDetailsService {
         userRepository.save(userEntity);
         confirmationTokenService.saveConfirmationToken(confirmationToken);
 
-        String link = "http://localhost:8080//users/registration/confirm?token=" + token;
+        String link = "http://localhost:8080/api/users/registration/confirm?token=" + token;
         emailSender.send(
-                registrationDto.getEmail(),
-                buildEmail(registrationDto.getFirstName(), link));
+                userDto.getEmail(),
+                buildEmail(userDto.getFirstName(), link));
     }
 
     @Transactional
@@ -194,6 +202,47 @@ public class UserService implements UserDetailsService {
                 "  </tbody></table><div class=\"yj6qo\"></div><div class=\"adL\">\n" +
                 "\n" +
                 "</div></div>";
+    }
+
+    public ResponseEntity<List<UserEntity>> findAll() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if(!auth.getAuthorities().contains(UserRole.ADMIN)) {
+            return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+        }
+        if (userRepository.findAll().isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.NO_CONTENT);
+        }
+        return new ResponseEntity<>(userRepository.findAll(), HttpStatus.OK);
+    }
+
+    public ResponseEntity<UserEntity> findById(Long id) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if(!((UserEntity) auth.getPrincipal()).getId().equals(id)) {
+            return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+        }
+        if (userRepository.findById(id).isEmpty()) {
+            throw new ResponseStatusException((HttpStatus.NOT_FOUND));
+        }
+        return new ResponseEntity<>(userRepository.findById(id).get(), HttpStatus.OK);
+    }
+
+    public void updateUser(Long id, UserDto userDto) {
+        UserEntity user =
+                userRepository.findById(id)
+                        .orElseThrow(() -> new NotFoundException("user with id: " + id + "cannot be found"));
+
+        user.setFirstName(userDto.getFirstName());
+        user.setLastName(userDto.getLastName());
+        user.setEmail(userDto.getEmail());
+        user.setPassword(userDto.getPassword());
+        userRepository.save(user);
+    }
+
+    public void deleteUserById(Long id) {
+        if ((userRepository.findById(id).isEmpty())) {
+            throw new ResponseStatusException(HttpStatus.NO_CONTENT);
+        }
+        userRepository.deleteById(id);
     }
 }
 

@@ -1,11 +1,10 @@
 package com.example.projectfilrouge.entity;
 
+import jakarta.persistence.*;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
-import javax.persistence.*;
 import java.util.Date;
 
 @Getter

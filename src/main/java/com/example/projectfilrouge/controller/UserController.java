@@ -1,74 +1,73 @@
 package com.example.projectfilrouge.controller;
 
-import com.example.projectfilrouge.dto.RegistrationDto;
+import com.example.projectfilrouge.dto.JwtResponse;
+import com.example.projectfilrouge.dto.LoginDto;
+import com.example.projectfilrouge.dto.UserDto;
 import com.example.projectfilrouge.entity.UserEntity;
-import com.example.projectfilrouge.repository.UserRepository;
+import com.example.projectfilrouge.security.jwt.JwtUtils;
 import com.example.projectfilrouge.service.user.UserService;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
-import java.util.Optional;
 
-@CrossOrigin(origins = "*")
 @RestController
 @AllArgsConstructor
-@RequestMapping("/api")
 public class UserController {
 
+    private final AuthenticationManager authenticationManager;
     private final UserService userService;
-    private final UserRepository userRepo;
-
-
+    private final JwtUtils jwtUtils;
 
     @GetMapping("/users")
-    public List<UserEntity> getAll() {
-        if (userRepo.findAll().isEmpty()){
-            throw new ResponseStatusException(HttpStatus.NO_CONTENT);
-        }
-        return userRepo.findAll();
+    public ResponseEntity<List<UserEntity>> getAll() {
+        return userService.findAll();
     }
-    /*@GetMapping("/users/")
-    @ResponseBody
-    public List<User> getByTitle(@RequestParam String username) {
-        if (userRepo.findByUsernameIsContainingIgnoreCase(username).isEmpty()){
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND);
-        }
-        return userRepo.findByUsernameIsContainingIgnoreCase(username);
-    }*/
+
     @GetMapping("/users/{id}")
-    public Optional<UserEntity> getById(@PathVariable Long id){
-        if (userRepo.findById(id).isEmpty()){
-            throw new ResponseStatusException((HttpStatus.NOT_FOUND));
-        }
-        return userRepo.findById(id);
+    public ResponseEntity<UserEntity> getById(@PathVariable Long id){
+        return userService.findById(id);
     }
 
     @PutMapping("/users/{id}")
     @ResponseStatus(HttpStatus.ACCEPTED)
-    public void updateById(@PathVariable Long id, @RequestBody UserEntity userEntity){
-        //userRepo.save(new User(user.getUsername(), user.getPassword()));
+    public void updateById(@PathVariable Long id, @RequestBody UserDto userDto){
+        userService.updateUser(id, userDto);
     }
 
     @DeleteMapping("/users/{id}")
     @ResponseStatus(HttpStatus.ACCEPTED)
     public void deleteById(@PathVariable Long id){
-        if ((userRepo.findById(id).isEmpty())){
-            throw new ResponseStatusException(HttpStatus.NO_CONTENT);
-        }
-        userRepo.deleteById(id);
+       userService.deleteUserById(id);
     }
 
-    @PostMapping("/users/registration")
-    public HttpStatus register(@RequestBody RegistrationDto request) {
+    @PostMapping("/registration")
+    public HttpStatus register(@RequestBody UserDto request) {
         userService.signUpUser(request);
         return HttpStatus.CREATED;
     }
 
-    @GetMapping(path = "/users/registration/confirm")
+    @GetMapping(path = "/registration/confirm")
     public String confirm(@RequestParam("token") String token) {
         return userService.confirmToken(token);
+    }
+
+    @PostMapping("/registration/login")
+    public ResponseEntity<?> login(@RequestBody LoginDto loginDto) {
+
+        Authentication authentication = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(loginDto.getEmail(), loginDto.getPassword()));
+
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+
+        String jwt = jwtUtils.generateJwtToken(authentication);
+
+        return ResponseEntity.ok(new JwtResponse(jwt));
     }
 }
