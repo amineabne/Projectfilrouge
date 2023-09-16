@@ -29,7 +29,7 @@ public class TicketService {
         ticket.setPrice(ticketDto.getPrice());
         ticket.setDetails(ticketDto.getDetails());
         ticket.setState(ticketDto.getState());
-        ticket.setOwner(userEntity);
+        ticket.setSeller(userEntity);
         ticketRepository.save(
                 ticket
         );
@@ -51,7 +51,7 @@ public class TicketService {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         UserEntity userEntity = (UserEntity) auth.getPrincipal();
         Ticket ticket = findTicketById(id);
-        if(!ticket.getOwner().getId().equals(userEntity.getId())) {
+        if(!ticket.getSeller().getId().equals(userEntity.getId())) {
             throw new NotAllowedException();
         }
         ticket.setEventName(ticketDto.getEventName());
@@ -68,7 +68,7 @@ public class TicketService {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         UserEntity userEntity = (UserEntity) auth.getPrincipal();
         Ticket ticket = findTicketById(id);
-        if(!ticket.getOwner().getId().equals(userEntity.getId())) {
+        if(!ticket.getSeller().getId().equals(userEntity.getId())) {
             throw new NotAllowedException();
         }
         ticketRepository.deleteById(id);

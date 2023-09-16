@@ -25,8 +25,12 @@ public class Ticket {
     private String state;
 
     @ManyToOne
-    @JoinColumn(name = "owner_id")
-    private UserEntity owner;
+    @JoinColumn(name = "seller_id")
+    private UserEntity seller;
+
+    @ManyToOne
+    @JoinColumn(name = "buyer_id")
+    private UserEntity buyer;
 
 
 }

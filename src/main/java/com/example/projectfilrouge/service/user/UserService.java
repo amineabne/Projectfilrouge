@@ -1,17 +1,20 @@
 package com.example.projectfilrouge.service.user;
 
 
+import com.example.projectfilrouge.dto.AllTicketDto;
+import com.example.projectfilrouge.dto.TicketDto;
 import com.example.projectfilrouge.dto.UserDto;
 import com.example.projectfilrouge.entity.ConfirmationToken;
+import com.example.projectfilrouge.entity.Ticket;
 import com.example.projectfilrouge.entity.UserEntity;
 import com.example.projectfilrouge.entity.UserRole;
 import com.example.projectfilrouge.exception.NotFoundException;
+import com.example.projectfilrouge.repository.TicketRepository;
 import com.example.projectfilrouge.repository.UserRepository;
 import com.example.projectfilrouge.service.email.EmailSender;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -24,7 +27,6 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -33,6 +35,7 @@ public class UserService implements UserDetailsService {
 
     private static final String USER_NOT_FOUND_MSG = "user with email %s not found";
     private final UserRepository userRepository;
+    private final TicketRepository ticketRepository;
     private final PasswordEncoder passwordEncoder;
     private final EmailSender emailSender;
     private final ConfirmationTokenService confirmationTokenService;
@@ -226,7 +229,11 @@ public class UserService implements UserDetailsService {
         return new ResponseEntity<>(userRepository.findById(id).get(), HttpStatus.OK);
     }
 
-    public void updateUser(Long id, UserDto userDto) {
+    public ResponseEntity<HttpStatus> updateUser(Long id, UserDto userDto) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if(!((UserEntity) auth.getPrincipal()).getId().equals(id)) {
+            return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+        }
         UserEntity user =
                 userRepository.findById(id)
                         .orElseThrow(() -> new NotFoundException("user with id: " + id + "cannot be found"));
@@ -236,6 +243,7 @@ public class UserService implements UserDetailsService {
         user.setEmail(userDto.getEmail());
         user.setPassword(userDto.getPassword());
         userRepository.save(user);
+        return new ResponseEntity<>(HttpStatus.CREATED);
     }
 
     public void deleteUserById(Long id) {
@@ -243,6 +251,18 @@ public class UserService implements UserDetailsService {
             throw new ResponseStatusException(HttpStatus.NO_CONTENT);
         }
         userRepository.deleteById(id);
+    }
+
+    public AllTicketDto getAllUserRelatedTicket() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        Long userId = ((UserEntity) auth.getPrincipal()).getId();
+        List<Ticket> ticketOnSale = ticketRepository.findTicketOnSale(userId);
+        List<Ticket> ticketPurchased = ticketRepository.findTicketPurchased(userId);
+        return new AllTicketDto(
+                ticketOnSale.stream().map(ticket -> new TicketDto(ticket.getEventName(), ticket.getEventDate(), ticket.getPrice(), ticket.getDetails(), ticket.getState())).toList(),
+                ticketPurchased.stream().map(ticket -> new TicketDto(ticket.getEventName(), ticket.getEventDate(), ticket.getPrice(), ticket.getDetails(), ticket.getState())).toList()
+        );
+
     }
 }
 
