@@ -31,10 +31,10 @@ public class WebSecurityConfig {
     private AuthEntryPoint unauthorizedHandler;
 
     @Bean
-    public DaoAuthenticationProvider authenticationProvider() {
+    public DaoAuthenticationProvider authenticationProvider() {//donner les infos de l'authentification
         DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
-        authProvider.setUserDetailsService(userService);
-        authProvider.setPasswordEncoder(passwordEncoder);
+        authProvider.setUserDetailsService(userService);//userservice implement userdetailservice et c'est ça qui intéresse setuserdetailservice
+        authProvider.setPasswordEncoder(passwordEncoder);//Fait appel au password encoder pour voir si sa match avec le password utilisé par le user
 
         return authProvider;
     }
@@ -55,8 +55,8 @@ public class WebSecurityConfig {
                 .exceptionHandling(exception -> exception.authenticationEntryPoint(unauthorizedHandler))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth ->
-                        auth.requestMatchers("/registration/**").permitAll()
-                                .anyRequest().authenticated()
+                        auth.requestMatchers("/registration/**").permitAll() //ça te dit que cette url est accessible à tous
+                                .anyRequest().authenticated()//Les autres faut être authentifié
                 );
 
         http.authenticationProvider(authenticationProvider());

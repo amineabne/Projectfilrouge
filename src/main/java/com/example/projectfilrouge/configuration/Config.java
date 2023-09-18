@@ -11,9 +11,11 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 @Configuration
 public class Config {
 
+//@Bean permet d'en faire un component que tu pourras appeler avec un autowired
     @Bean
     public JavaMailSender javaMailSender() {
 
+//Permet de mettre des infos de config du serveur mail qui permet d'envoyer le mail au user
         JavaMailSenderImpl javaMailSender = new JavaMailSenderImpl();
         javaMailSender.setHost("smtp-relay.sendinblue.com");
         javaMailSender.setPort(587);
