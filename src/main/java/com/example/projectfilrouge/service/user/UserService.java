@@ -235,7 +235,10 @@ public class UserService implements UserDetailsService {
 
     public ResponseEntity<UserEntity> findById(Long id) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if(!((UserEntity) auth.getPrincipal()).getId().equals(id)) {
+        if(
+            !((UserEntity) auth.getPrincipal()).getId().equals(id)
+            || !auth.getAuthorities().contains(UserRole.ADMIN)
+        ) {
             return new ResponseEntity<>(HttpStatus.FORBIDDEN);
         }
         if (userRepository.findById(id).isEmpty()) {
@@ -254,7 +257,6 @@ public class UserService implements UserDetailsService {
         UserEntity user =
                 userRepository.findById(id)
                         .orElseThrow(() -> new NotFoundException("user with id: " + id + "cannot be found"));
-
         user.setFirstName(userDto.getFirstName());
         user.setLastName(userDto.getLastName());
         user.setEmail(userDto.getEmail());
@@ -295,7 +297,6 @@ public class UserService implements UserDetailsService {
                 //ToList c'est tout ce qu'il a stocké en mémoire il en fait un eliste et me le renvoi
                 //Pour le mettre dans ticketOnSale ou ticketPurshed AllTicketDto
         );
-
     }
 }
 

@@ -41,6 +41,7 @@ public class TicketService {
                 ticket
         );
     }
+
 //cherche l'enseble des tickets grâce au repo qui est interagit avec bdd
     public List<Ticket> findAllTickets() {
         return ticketRepository.findAll();
