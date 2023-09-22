@@ -30,15 +30,15 @@ public class AuthTokenFilter extends OncePerRequestFilter {
             String jwt = parseJwt(request);
 
             if (jwt != null && jwtUtils.validateJwtToken(jwt)) {
-                String username = jwtUtils.getEmailFromJwt(jwt); //tu recupere l'email grace au token
+                String username = jwtUtils.getEmailFromJwt(jwt);
 
-                UserDetails userDetails = userService.loadUserByUsername(username);//Tu recupere le user grace au mail
+                UserDetails userDetails = userService.loadUserByUsername(username);
 
-                UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities()); //ici tu créer un objet usernamePasswordAuthenticationTokken
+                UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
 
                 authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
-                SecurityContextHolder.getContext().setAuthentication(authentication);//Associe le contexte avec l'information d'authentification du user, ça permet de cloissoner l'utilisation de l'appli dans le sens où il n'est qu'à toi
+                SecurityContextHolder.getContext().setAuthentication(authentication);
 
             }
         } catch (Exception e) {

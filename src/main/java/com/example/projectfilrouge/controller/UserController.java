@@ -58,7 +58,6 @@ public class UserController {
     public String confirm(@RequestParam("token") String token) {
         return userService.confirmToken(token);
     }
-//Tu récupère l'email et le password dans le dto que tu réinjecte dans la classe UsernamePasswordAuthenticationToken
     @PostMapping("/registration/login")
     public ResponseEntity<?> login(@RequestBody LoginDto loginDto) {
 
@@ -71,7 +70,6 @@ public class UserController {
 
         return ResponseEntity.ok(new JwtResponse(jwt));
     }
-//L'url qui permet d'afficher la liste des tickets en lien avec l'utilisateur (l'historique de vente et d'achat)
     @GetMapping("/users/tickets")
     public AllTicketDto getAllUserRelatedTicket() {
         return userService.getAllUserRelatedTicket();

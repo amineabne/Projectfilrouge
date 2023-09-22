@@ -32,10 +32,10 @@ public class WebSecurityConfig {
     private AuthEntryPoint unauthorizedHandler;
 
     @Bean
-    public DaoAuthenticationProvider authenticationProvider() {//donner les infos de l'authentification
+    public DaoAuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
-        authProvider.setUserDetailsService(userService);//userservice implement userdetailservice et c'est ça qui intéresse setuserdetailservice
-        authProvider.setPasswordEncoder(passwordEncoder);//Fait appel au password encoder pour voir si sa match avec le password utilisé par le user
+        authProvider.setUserDetailsService(userService);
+        authProvider.setPasswordEncoder(passwordEncoder);
 
         return authProvider;
     }
