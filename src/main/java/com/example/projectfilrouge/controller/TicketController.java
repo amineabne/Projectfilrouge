@@ -1,11 +1,13 @@
 package com.example.projectfilrouge.controller;
 
 import com.example.projectfilrouge.dto.TicketDto;
+import com.example.projectfilrouge.dto.TicketFilterDto;
 import com.example.projectfilrouge.entity.Ticket;
 import com.example.projectfilrouge.service.TicketService;
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Date;
 import java.util.List;
 
 @RestController
@@ -21,8 +23,10 @@ public class TicketController {
     }
 
     @GetMapping
-    public List<Ticket> getAllTickets() {
-       return ticketService.findAllTickets();
+    public List<Ticket> getAllTickets(
+            @RequestBody TicketFilterDto ticketFilterDto
+    ) {
+       return ticketService.findAllTickets(ticketFilterDto);
     }
 
     @GetMapping("/{id}")
@@ -38,5 +42,15 @@ public class TicketController {
     @DeleteMapping("/{id}")
     public void deleteTicketById(@PathVariable Long id) {
         ticketService.deleteTicket(id);
+    }
+
+    @PutMapping("/{id}/buy")
+    public void buyTicket(@PathVariable Long id) {
+        ticketService.buyTicket(id);
+    }
+
+    @PutMapping("/{id}/rate")
+    public void rateTransaction(@PathVariable Long id, int rating) {
+        ticketService.rateTransaction(id, rating);
     }
 }

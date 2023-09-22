@@ -1,6 +1,7 @@
 package com.example.projectfilrouge.service;
 
 import com.example.projectfilrouge.dto.TicketDto;
+import com.example.projectfilrouge.dto.TicketFilterDto;
 import com.example.projectfilrouge.entity.Ticket;
 import com.example.projectfilrouge.entity.UserEntity;
 import com.example.projectfilrouge.exception.NotAllowedException;
@@ -11,6 +12,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -19,7 +21,6 @@ import java.util.Optional;
 public class TicketService {
 
     private TicketRepository ticketRepository;
-
     public void saveTicket(TicketDto ticketDto) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         UserEntity userEntity = (UserEntity) auth.getPrincipal();
@@ -30,6 +31,7 @@ public class TicketService {
         ticket.setPrice(ticketDto.getPrice());
         ticket.setDetails(ticketDto.getDetails());
         ticket.setState(ticketDto.getState());
+        ticket.setTags(ticket.getTags());
         ticket.setSeller(userEntity);
 
         ticketRepository.save(
@@ -37,8 +39,11 @@ public class TicketService {
         );
     }
 
-    public List<Ticket> findAllTickets() {
-        return ticketRepository.findAll();
+    public List<Ticket> findAllTickets(
+            TicketFilterDto ticketFilterDto
+    ) {
+        List<Ticket> tickets = ticketRepository.findAll(ticketFilterDto.getEventName(), ticketFilterDto.getEventStartDate(), ticketFilterDto.getEventEndDate(), ticketFilterDto.getPriceMin(), ticketFilterDto.getPriceMax(), ticketFilterDto.getDetails(), ticketFilterDto.getState());
+        return tickets.stream().filter(ticket -> ticket.getTags().containsAll(ticketFilterDto.getTags())).distinct().toList();
     }
 
     public Ticket findTicketById(Long id) {
@@ -64,6 +69,7 @@ public class TicketService {
         ticket.setPrice(ticketDto.getPrice());
         ticket.setDetails(ticketDto.getDetails());
         ticket.setState(ticketDto.getState());
+        ticket.setTags(ticket.getTags());
         ticketRepository.save(
                 ticket
         );
@@ -77,5 +83,27 @@ public class TicketService {
             throw new NotAllowedException();
         }
         ticketRepository.deleteById(id);
+    }
+
+    public void buyTicket(Long id) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        UserEntity userEntity = (UserEntity) auth.getPrincipal();
+        Ticket ticket = findTicketById(id);
+        if (userEntity.getId().equals(ticket.getSeller().getId())) {
+            throw new NotAllowedException();
+        }
+        ticket.setBuyer(userEntity);
+        ticketRepository.save(ticket);
+    }
+
+    public void rateTransaction(Long id, int rating) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        UserEntity userEntity = (UserEntity) auth.getPrincipal();
+        Ticket ticket = findTicketById(id);
+        if (ticket.getBuyer() == null || !userEntity.getId().equals(ticket.getBuyer().getId())) {
+            throw new NotAllowedException();
+        }
+        ticket.setRating(rating);
+        ticketRepository.save(ticket);
     }
 }
