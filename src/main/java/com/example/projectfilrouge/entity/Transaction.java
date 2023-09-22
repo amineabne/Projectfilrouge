@@ -1,8 +1,8 @@
 package com.example.projectfilrouge.entity;
 
-import jakarta.persistence.*;
 import lombok.Data;
 
+import jakarta.persistence.*;
 import java.util.Date;
 
 @Entity
@@ -18,7 +18,7 @@ public class Transaction {
 
     @ManyToOne
     @JoinColumn(name = "user_id")
-    private User user;
+    private UserEntity userEntity;
 
     @ManyToOne
     @JoinColumn(name = "ticket_id")
