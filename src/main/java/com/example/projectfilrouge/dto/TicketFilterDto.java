@@ -12,13 +12,13 @@ import java.util.List;
 @Setter
 @EqualsAndHashCode
 @AllArgsConstructor
-public class TicketDto {
-
+public class TicketFilterDto {
     private String eventName;
-    private Date eventDate;
-    private Double price;
+    private Date eventStartDate;
+    private Date eventEndDate;
+    private Double priceMin;
+    private Double priceMax;
     private String details;
     private String state;
     private List<String> tags;
-
 }

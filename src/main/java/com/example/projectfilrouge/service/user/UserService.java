@@ -261,8 +261,8 @@ public class UserService implements UserDetailsService {
         List<Ticket> ticketOnSale = ticketRepository.findTicketOnSale(userId);
         List<Ticket> ticketPurchased = ticketRepository.findTicketPurchased(userId);
         return new AllTicketDto(
-                ticketOnSale.stream().map(ticket -> new TicketDto(ticket.getEventName(), ticket.getEventDate(), ticket.getPrice(), ticket.getDetails(), ticket.getState())).toList(),
-                ticketPurchased.stream().map(ticket -> new TicketDto(ticket.getEventName(), ticket.getEventDate(), ticket.getPrice(), ticket.getDetails(), ticket.getState())).toList()
+                ticketOnSale.stream().map(ticket -> new TicketDto(ticket.getEventName(), ticket.getEventDate(), ticket.getPrice(), ticket.getDetails(), ticket.getState(), ticket.getTags())).toList(),
+                ticketPurchased.stream().map(ticket -> new TicketDto(ticket.getEventName(), ticket.getEventDate(), ticket.getPrice(), ticket.getDetails(), ticket.getState(), ticket.getTags())).toList()
         );
     }
 }

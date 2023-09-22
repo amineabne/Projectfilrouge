@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import java.util.Date;
+import java.util.List;
 
 @Getter
 @Setter
@@ -23,6 +24,9 @@ public class Ticket {
     private Double price;
     private String details;
     private String state;
+    private Integer rating;
+    @ElementCollection
+    private List<String> tags;
 
     @ManyToOne
     @JoinColumn(name = "seller_id")
