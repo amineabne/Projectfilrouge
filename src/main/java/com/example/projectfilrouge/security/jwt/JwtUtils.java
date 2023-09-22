@@ -22,7 +22,7 @@ public class JwtUtils {
 	@Value("${app.jwtExpiration}")
 	private int jwtExpiration;
 
-	public String generateJwtToken(Authentication authentication) {
+	public String generateJwtToken(Authentication authentication) { //Permet de générer un token
 		UserDetails userPrincipal = (UserDetails) authentication.getPrincipal();
 
 		return Jwts.builder()

@@ -1,17 +1,21 @@
 package com.example.projectfilrouge.service.user;
 
 
+import com.example.projectfilrouge.dto.AllTicketDto;
+import com.example.projectfilrouge.dto.TicketDto;
 import com.example.projectfilrouge.dto.UserDto;
 import com.example.projectfilrouge.entity.ConfirmationToken;
+import com.example.projectfilrouge.entity.Ticket;
 import com.example.projectfilrouge.entity.UserEntity;
 import com.example.projectfilrouge.entity.UserRole;
+import com.example.projectfilrouge.exception.NotAllowedException;
 import com.example.projectfilrouge.exception.NotFoundException;
+import com.example.projectfilrouge.repository.TicketRepository;
 import com.example.projectfilrouge.repository.UserRepository;
 import com.example.projectfilrouge.service.email.EmailSender;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -24,7 +28,6 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -33,6 +36,7 @@ public class UserService implements UserDetailsService {
 
     private static final String USER_NOT_FOUND_MSG = "user with email %s not found";
     private final UserRepository userRepository;
+    private final TicketRepository ticketRepository;
     private final PasswordEncoder passwordEncoder;
     private final EmailSender emailSender;
     private final ConfirmationTokenService confirmationTokenService;
@@ -78,7 +82,7 @@ public class UserService implements UserDetailsService {
         userRepository.save(userEntity);
         confirmationTokenService.saveConfirmationToken(confirmationToken);
 
-        String link = "http://localhost:8080/api/users/registration/confirm?token=" + token;
+        String link = "http://localhost:8080/registration/confirm?token=" + token;
         emailSender.send(
                 userDto.getEmail(),
                 buildEmail(userDto.getFirstName(), link));
@@ -91,17 +95,13 @@ public class UserService implements UserDetailsService {
                 .orElseThrow(() ->
                         new IllegalStateException("token not found")
                 );
-
         if (confirmationToken.getConfirmedAt() != null) {
             throw new IllegalStateException("Email already confirmed");
         }
-
         LocalDateTime expiredAt = confirmationToken.getExpiresAt();
-
         if (expiredAt.isBefore(LocalDateTime.now())) {
             throw new IllegalStateException(("token expired"));
         }
-
         confirmationTokenService.setConfirmedAt(token);
         userRepository.enableUser(confirmationToken.getUserEntity()
                 .getEmail());
@@ -217,7 +217,10 @@ public class UserService implements UserDetailsService {
 
     public ResponseEntity<UserEntity> findById(Long id) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if(!((UserEntity) auth.getPrincipal()).getId().equals(id)) {
+        if(
+            !((UserEntity) auth.getPrincipal()).getId().equals(id)
+            || !auth.getAuthorities().contains(UserRole.ADMIN)
+        ) {
             return new ResponseEntity<>(HttpStatus.FORBIDDEN);
         }
         if (userRepository.findById(id).isEmpty()) {
@@ -226,23 +229,41 @@ public class UserService implements UserDetailsService {
         return new ResponseEntity<>(userRepository.findById(id).get(), HttpStatus.OK);
     }
 
-    public void updateUser(Long id, UserDto userDto) {
+    public ResponseEntity<HttpStatus> updateUser(Long id, UserDto userDto) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if(!((UserEntity) auth.getPrincipal()).getId().equals(id)) {
+            return new ResponseEntity<>(HttpStatus.FORBIDDEN);
+        }
         UserEntity user =
                 userRepository.findById(id)
                         .orElseThrow(() -> new NotFoundException("user with id: " + id + "cannot be found"));
-
         user.setFirstName(userDto.getFirstName());
         user.setLastName(userDto.getLastName());
         user.setEmail(userDto.getEmail());
         user.setPassword(userDto.getPassword());
         userRepository.save(user);
+        return new ResponseEntity<>(HttpStatus.CREATED);
     }
-
     public void deleteUserById(Long id) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if(!((UserEntity) auth.getPrincipal()).getId().equals(id)) {
+            throw new NotAllowedException();
+        }
         if ((userRepository.findById(id).isEmpty())) {
             throw new ResponseStatusException(HttpStatus.NO_CONTENT);
         }
         userRepository.deleteById(id);
+    }
+
+    public AllTicketDto getAllUserRelatedTicket() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        Long userId = ((UserEntity) auth.getPrincipal()).getId();
+        List<Ticket> ticketOnSale = ticketRepository.findTicketOnSale(userId);
+        List<Ticket> ticketPurchased = ticketRepository.findTicketPurchased(userId);
+        return new AllTicketDto(
+                ticketOnSale.stream().map(ticket -> new TicketDto(ticket.getEventName(), ticket.getEventDate(), ticket.getPrice(), ticket.getDetails(), ticket.getState())).toList(),
+                ticketPurchased.stream().map(ticket -> new TicketDto(ticket.getEventName(), ticket.getEventDate(), ticket.getPrice(), ticket.getDetails(), ticket.getState())).toList()
+        );
     }
 }
 

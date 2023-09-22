@@ -1,5 +1,6 @@
 package com.example.projectfilrouge.controller;
 
+import com.example.projectfilrouge.dto.AllTicketDto;
 import com.example.projectfilrouge.dto.JwtResponse;
 import com.example.projectfilrouge.dto.LoginDto;
 import com.example.projectfilrouge.dto.UserDto;
@@ -57,7 +58,6 @@ public class UserController {
     public String confirm(@RequestParam("token") String token) {
         return userService.confirmToken(token);
     }
-
     @PostMapping("/registration/login")
     public ResponseEntity<?> login(@RequestBody LoginDto loginDto) {
 
@@ -69,5 +69,9 @@ public class UserController {
         String jwt = jwtUtils.generateJwtToken(authentication);
 
         return ResponseEntity.ok(new JwtResponse(jwt));
+    }
+    @GetMapping("/users/tickets")
+    public AllTicketDto getAllUserRelatedTicket() {
+        return userService.getAllUserRelatedTicket();
     }
 }
