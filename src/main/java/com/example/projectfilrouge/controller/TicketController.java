@@ -24,9 +24,16 @@ public class TicketController {
 
     @GetMapping
     public List<Ticket> getAllTickets(
-            @RequestBody TicketFilterDto ticketFilterDto
+            @PathVariable String eventName,
+            @PathVariable Date eventStartDate,
+            @PathVariable Date eventEndDate,
+            @PathVariable Double priceMin,
+            @PathVariable Double priceMax,
+            @PathVariable String details,
+            @PathVariable String state,
+            @PathVariable List<String> tags
     ) {
-       return ticketService.findAllTickets(ticketFilterDto);
+        return ticketService.findAllTickets(eventName, eventStartDate, eventEndDate, priceMin, priceMax, details, state, tags);
     }
 
     @GetMapping("/{id}")
