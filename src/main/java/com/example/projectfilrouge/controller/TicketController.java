@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @AllArgsConstructor
@@ -24,9 +25,16 @@ public class TicketController {
 
     @GetMapping
     public List<Ticket> getAllTickets(
-            @RequestBody TicketFilterDto ticketFilterDto
+            @RequestParam Optional<String> eventName,
+            @RequestParam Optional<Date> eventStartDate,
+            @RequestParam Optional<Date> eventEndDate,
+            @RequestParam Optional<Double> priceMin,
+            @RequestParam Optional<Double> priceMax,
+            @RequestParam Optional<String> details,
+            @RequestParam Optional<String> state,
+            @RequestParam Optional<List<String>> tags
     ) {
-       return ticketService.findAllTickets(ticketFilterDto);
+        return ticketService.findAllTickets(eventName.orElse(null), eventStartDate.orElse(null), eventEndDate.orElse(null), priceMin.orElse(null), priceMax.orElse(null), details.orElse(null), state.orElse(null), tags.orElse(null));
     }
 
     @GetMapping("/{id}")

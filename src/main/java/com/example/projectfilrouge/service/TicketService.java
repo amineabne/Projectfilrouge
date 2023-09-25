@@ -21,6 +21,7 @@ import java.util.Optional;
 public class TicketService {
 
     private TicketRepository ticketRepository;
+
     public void saveTicket(TicketDto ticketDto) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         UserEntity userEntity = (UserEntity) auth.getPrincipal();
@@ -39,11 +40,12 @@ public class TicketService {
         );
     }
 
-    public List<Ticket> findAllTickets(
-            TicketFilterDto ticketFilterDto
-    ) {
-        List<Ticket> tickets = ticketRepository.findAll(ticketFilterDto.getEventName(), ticketFilterDto.getEventStartDate(), ticketFilterDto.getEventEndDate(), ticketFilterDto.getPriceMin(), ticketFilterDto.getPriceMax(), ticketFilterDto.getDetails(), ticketFilterDto.getState());
-        return tickets.stream().filter(ticket -> ticket.getTags().containsAll(ticketFilterDto.getTags())).distinct().toList();
+    public List<Ticket> findAllTickets(String eventName, Date eventStartDate, Date eventEndDate, Double priceMin, Double priceMax, String details, String state, List<String> tags) {
+        List<Ticket> tickets = ticketRepository.findAll(eventName, eventStartDate, eventEndDate, priceMin, priceMax, details, state);
+        if (tags != null && !tags.isEmpty()) {
+            return tickets.stream().filter(ticket -> ticket.getTags().containsAll(tags)).distinct().toList();
+        }
+        return tickets;
     }
 
     public Ticket findTicketById(Long id) {
@@ -106,4 +108,5 @@ public class TicketService {
         ticket.setRating(rating);
         ticketRepository.save(ticket);
     }
+
 }
