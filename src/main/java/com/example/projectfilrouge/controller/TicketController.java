@@ -14,6 +14,7 @@ import java.util.Optional;
 @RestController
 @AllArgsConstructor
 @RequestMapping("/tickets")
+@CrossOrigin("*")
 public class TicketController {
 
     private TicketService ticketService;

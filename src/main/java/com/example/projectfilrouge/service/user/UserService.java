@@ -206,7 +206,7 @@ public class UserService implements UserDetailsService {
 
     public ResponseEntity<List<UserEntity>> findAll() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        if(!auth.getAuthorities().contains(UserRole.ADMIN)) {
+        if(auth.getAuthorities().contains(UserRole.ADMIN)) {
             return new ResponseEntity<>(HttpStatus.FORBIDDEN);
         }
         if (userRepository.findAll().isEmpty()) {
@@ -219,7 +219,7 @@ public class UserService implements UserDetailsService {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if(
             !((UserEntity) auth.getPrincipal()).getId().equals(id)
-            || !auth.getAuthorities().contains(UserRole.ADMIN)
+            || auth.getAuthorities().contains(UserRole.ADMIN)
         ) {
             return new ResponseEntity<>(HttpStatus.FORBIDDEN);
         }
